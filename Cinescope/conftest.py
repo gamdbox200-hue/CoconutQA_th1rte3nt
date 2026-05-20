@@ -3,6 +3,7 @@ import requests
 from constants import BASE_URL, REGISTER_ENDPOINT, LOGIN_ENDPOINT
 from utils.data_generator import DataGenerator
 from custom_requester.custom_requester import CustomRequester
+from api.api_manager import ApiManager
 
 
 @pytest.fixture(scope="session")
@@ -27,30 +28,26 @@ def requester():
 
 
 @pytest.fixture(scope="session")
-def registered_user(requester, test_user):
-    response = requester.send_request(
-        "POST", REGISTER_ENDPOINT, data=test_user, expected_status=201
-    )
-    # Возвращаем только то, что нужно для логина
+def registered_user(api_manager, test_user):
+    response = api_manager.auth_api.register_user(test_user, expected_status=201)
     return {
         "email": test_user["email"],
         "password": test_user["password"]
     }
 
+@pytest.fixture(scope="session")
+def auth_session(api_manager, registered_user):
+    api_manager.auth_api.authenticate(
+        (registered_user["email"], registered_user["password"])
+    )
+    return api_manager.session
 
 @pytest.fixture(scope="session")
-def auth_session(requester, registered_user):
-    login_data = {
-        "email": registered_user["email"],
-        "password": registered_user["password"]
-    }
-    response = requester.send_request(
-        "POST", LOGIN_ENDPOINT, data=login_data, expected_status=200
-    )
-    token = response.json().get("accessToken")
-    assert token is not None, "Токен доступа отсутствует в ответе"
+def session():
+    http_session = requests.Session()
+    yield http_session
+    http_session.close()
 
-    session = requests.Session()
-    session.headers.update(requester.headers)
-    session.headers.update({"Authorization": f"Bearer {token}"})
-    return session
+@pytest.fixture(scope="session")
+def api_manager(session):
+    return ApiManager(session)

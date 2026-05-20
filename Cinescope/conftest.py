@@ -1,7 +1,9 @@
-import requests
-from constants import BASE_URL, HEADERS, REGISTER_ENDPOINT, LOGIN_ENDPOINT
 import pytest
+import requests
+from constants import BASE_URL, REGISTER_ENDPOINT, LOGIN_ENDPOINT
 from utils.data_generator import DataGenerator
+from custom_requester.custom_requester import CustomRequester
+
 
 @pytest.fixture(scope="session")
 def test_user():
@@ -11,30 +13,44 @@ def test_user():
 
     return {
         "email": random_email,
-        "fullname": random_name,
+        "fullName": random_name,
         "password": random_password,
         "passwordRepeat": random_password,
         "roles": ["USER"]
     }
 
-@pytest.fixture(scope="session")
-def auth_session(test_user):
-    register_url = f'{BASE_URL}{REGISTER_ENDPOINT}'
-    response = requests.post(register_url, json=test_user, headers=HEADERS)
-    assert response.status_code == 201, "Ошибка регистрации инвалида"
 
-    login_url = f'{BASE_URL}{LOGIN_ENDPOINT}'
-    login_data = {
-        "email":test_user["email"],
+@pytest.fixture(scope="session")
+def requester():
+    session = requests.Session()
+    return CustomRequester(session, BASE_URL)
+
+
+@pytest.fixture(scope="session")
+def registered_user(requester, test_user):
+    response = requester.send_request(
+        "POST", REGISTER_ENDPOINT, data=test_user, expected_status=201
+    )
+    # Возвращаем только то, что нужно для логина
+    return {
+        "email": test_user["email"],
         "password": test_user["password"]
     }
-    response = requests.post(login_url, json=login_data, headers=HEADERS)
-    assert response.status_code == 200, "Ошибка авторизации"
 
+
+@pytest.fixture(scope="session")
+def auth_session(requester, registered_user):
+    login_data = {
+        "email": registered_user["email"],
+        "password": registered_user["password"]
+    }
+    response = requester.send_request(
+        "POST", LOGIN_ENDPOINT, data=login_data, expected_status=200
+    )
     token = response.json().get("accessToken")
     assert token is not None, "Токен доступа отсутствует в ответе"
 
     session = requests.Session()
-    session.headers.update(HEADERS)
-    session.headers.update({"Authorizatiom": f"Bearer {token}"})
+    session.headers.update(requester.headers)
+    session.headers.update({"Authorization": f"Bearer {token}"})
     return session

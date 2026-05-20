@@ -1,14 +1,16 @@
 import random
 import string
 from faker import Faker
+
 faker = Faker()
+
 
 class DataGenerator:
 
     @staticmethod
     def generate_random_email():
-     random_string = "".join(random.choices(string.ascii_lowercase + string.digits, k=8))
-     return f"kek{random_string}@gmail.com"
+        random_string = "".join(random.choices(string.ascii_lowercase + string.digits, k=8))
+        return f"kek{random_string}@gmail.com"
 
     @staticmethod
     def generate_random_name():
@@ -16,16 +18,24 @@ class DataGenerator:
 
     @staticmethod
     def generate_random_password():
-        letters = random.choice(string.ascii_letters)
-        digits = random.choice(string.digits)
+        # Разрешённые спецсимволы согласно спецификации API
+        SPECIAL_CHARS = "~!?@#$%^&*_-+()[]{}><\\/|\"'.,:"
 
-        special_chars = "?@#$%^&*|:"
-        all_chars = string.ascii_letters + string.digits + special_chars
-        remaining_length = random.randint(6,18)
-        remaining_chars = "".join(random.choices(all_chars, k=remaining_length))
+        # Гарантированные символы (по одному каждого типа)
+        upper = random.choice(string.ascii_uppercase)   # заглавная латиница
+        lower = random.choice(string.ascii_lowercase)   # строчная латиница
+        digit = random.choice(string.digits)            # цифра
+        special = random.choice(SPECIAL_CHARS)          # спецсимвол
 
-        password = list(letters + digits + remaining_chars)
-        random.shuffle(password)
+        # Все допустимые символы для остальной части пароля
+        all_allowed = string.ascii_letters + string.digits + SPECIAL_CHARS
 
-        return "".join(password)
+        # Длина пароля от 8 до 32 символов (после добавления гарантированных)
+        remaining_length = random.randint(8 - 4, 32 - 4)  # минимум 4 уже есть
+        remaining_chars = "".join(random.choices(all_allowed, k=remaining_length))
 
+        # Собираем и перемешиваем
+        password_list = list(upper + lower + digit + special + remaining_chars)
+        random.shuffle(password_list)
+
+        return "".join(password_list)

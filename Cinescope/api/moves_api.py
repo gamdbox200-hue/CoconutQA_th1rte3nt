@@ -1,7 +1,6 @@
 from custom_requester.custom_requester import CustomRequester
 
 class MoviesAPI(CustomRequester):
-
     def __init__(self, session):
         super().__init__(
             session=session,
@@ -23,11 +22,11 @@ class MoviesAPI(CustomRequester):
             expected_status=expected_status
         )
 
-    def create_movie(self, movie_data, expected_status=200):
+    def create_movie(self, movie_data, expected_status=201):
         return self.send_request(
             method="POST",
             endpoint="/movies",
-            data = movie_data,
+            data=movie_data,
             expected_status=expected_status
         )
 

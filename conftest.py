@@ -60,7 +60,7 @@ def admin_session(session,api_manager):
     return session
 
 @pytest.fixture
-def movie(admin_session, api_manager):  # scope="function" — новый фильм для каждого теста
+def create_movie(admin_session, api_manager):
     movie_data = {
         "name": "Тестовый фильм " + DataGenerator.generate_random_name(),
         "description": "Тестовое описание",
@@ -72,3 +72,5 @@ def movie(admin_session, api_manager):  # scope="function" — новый фил
     response = api_manager.movies_api.create_movie(movie_data, expected_status=201)
     movie = response.json()
     yield movie
+
+    api_manager.movies_api.delete_movie(movie["id"], expected_status=200)

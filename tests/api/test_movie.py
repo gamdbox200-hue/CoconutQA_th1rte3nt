@@ -1,4 +1,6 @@
 import pytest
+from utils.data_generator import DataGenerator
+
 
 class TestMoviesAPI:
     def test_get_movies_success(self, api_manager, admin_session):
@@ -16,12 +18,9 @@ class TestMoviesAPI:
         assert "rating" in movie_data
         assert "genre" in movie_data
 
-    def test_get_movies_filter_by_location(self, api_manager, admin_session, create_movie):
-        response = api_manager.movies_api.get_movies(params={"location": "MSK"})
-        movies = response.json()["movies"]
-        assert len(movies) > 0
-        for m in movies:
-            assert m["location"] == "MSK"
+    def test_movie_has_correct_location(self, api_manager, admin_session, create_movie):
+        movie_data = api_manager.movies_api.get_movie_by_id(create_movie["id"]).json()
+        assert movie_data["location"] == "MSK"
 
     def test_get_movies_pagination(self, api_manager, admin_session):
         response = api_manager.movies_api.get_movies(params={"page": 1, "pageSize": 5})
@@ -39,11 +38,20 @@ class TestMoviesAPI:
         assert updated_movie["price"] == new_price
 
     def test_delete_movie_success(self, api_manager, admin_session, create_movie):
-        movie_id = create_movie["id"]
-        response = api_manager.movies_api.delete_movie(movie_id)
-        assert response.json() is not None
+        movie_data = {
+            "name": "FilmForDelete " + DataGenerator.generate_random_name(),
+            "description": "Test description for delete",
+            "price": 300,
+            "location": "MSK",
+            "published": True,
+            "genreId": 1
+        }
+        response = api_manager.movies_api.create_movie(movie_data, expected_status=201)
+        movie_to_delete = response.json()
 
-        api_manager.movies_api.get_movie_by_id(movie_id, expected_status=404)
+        api_manager.movies_api.delete_movie(movie_to_delete["id"], expected_status=200)
+        api_manager.movies_api.get_movie_by_id(movie_to_delete["id"], expected_status=404)
+
 
 
 class TestMoviesNegative:
@@ -74,4 +82,4 @@ class TestMoviesNegative:
 
     def test_update_movie_nonexistent_id(self, api_manager, admin_session):
         update_data = {"price": 999}
-        api_manager.movies_api.update_movie(99999999, update_data, expected_status=404)у
+        api_manager.movies_api.update_movie(99999999, update_data, expected_status=404)

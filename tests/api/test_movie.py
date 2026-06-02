@@ -37,7 +37,7 @@ class TestMoviesAPI:
         updated_movie = response.json()
         assert updated_movie["price"] == new_price
 
-    def test_delete_movie_success(self, api_manager, admin_session, create_movie):
+    def test_delete_movie_success(self, api_manager, admin_session):
         movie_data = {
             "name": "FilmForDelete " + DataGenerator.generate_random_name(),
             "description": "Test description for delete",
@@ -64,7 +64,9 @@ class TestMoviesNegative:
             "genreId": 1
         }
         response = api_manager.movies_api.create_movie(movie_data, expected_status=400)
-        assert "message" in response.json()
+        response_data = response.json()
+        assert "message" in response_data
+        assert any("price" in msg for msg in response_data["message"])
 
     def test_get_movie_nonexistent_id(self, api_manager, admin_session):
         api_manager.movies_api.get_movie_by_id(999999999, expected_status=404)
@@ -78,7 +80,10 @@ class TestMoviesNegative:
             "published": True,
             "genreId": 1
         }
-        api_manager.movies_api.create_movie(movie_data, expected_status=400)
+        response = api_manager.movies_api.create_movie(movie_data, expected_status=400)
+        response_data = response.json()
+        assert "message" in response_data
+        assert any("location" in msg for msg in response_data["message"])
 
     def test_update_movie_nonexistent_id(self, api_manager, admin_session):
         update_data = {"price": 999}

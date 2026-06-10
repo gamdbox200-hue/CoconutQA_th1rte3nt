@@ -40,13 +40,13 @@ class CustomRequester:
             RED = '\033[31m'
             RESET = '\033[0m'
 
-            # Собираем заголовки запроса
+
             headers = " \\\n".join(
                 [f"-H '{header}: {value}'" for header, value in request.headers.items()]
             )
             full_test_name = f"pytest {os.environ.get('PYTEST_CURRENT_TEST', '').replace(' (call)', '')}"
 
-            # Тело запроса
+
             body = ""
             if hasattr(request, 'body') and request.body is not None:
                 if isinstance(request.body, bytes):
@@ -62,20 +62,20 @@ class CustomRequester:
                 f"{body}"
             )
 
-            # Обрабатываем ответ
+
             response_status = response.status_code
             is_success = response.ok
             response_data = response.text
 
-            # Пытаемся форматировать JSON
+
             try:
                 response_data = json.dumps(
                     json.loads(response.text), indent=4, ensure_ascii=False
                 )
             except json.JSONDecodeError:
-                pass  # оставляем как есть, если не JSON
+                pass
 
-            # Логируем ответ
+
             self.logger.info(f"\n{'=' * 40} RESPONSE {'=' * 40}")
             if not is_success:
                 self.logger.info(

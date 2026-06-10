@@ -2,6 +2,7 @@ import json
 import logging
 import os
 import requests
+from pydantic import BaseModel
 
 class CustomRequester:
 
@@ -19,14 +20,14 @@ class CustomRequester:
 
     def send_request(self, method, endpoint, data=None, params=None, expected_status=200, need_logging=True):
         url = f"{self.base_url}{endpoint}"
+        if data is not None:
+            if isinstance(data, BaseModel):
+                data = data.model_dump()
         response = self.session.request(method, url, json=data, params=params, headers=self.headers)
-
         if need_logging:
             self.log_request_and_response(response)
-
         if response.status_code != expected_status:
             raise ValueError(f'Unexpected status code{response.status_code}. Expected: {expected_status}')
-
         return response
 
     def _update_session_headers(self, **kwargs):

@@ -19,7 +19,7 @@ class DataGenerator:
     @staticmethod
     def generate_random_password():
         # Разрешённые спецсимволы согласно спецификации API
-        SPECIAL_CHARS = "~!?@#$%^&*_-+()[]{}><\\/|\"'.,:"
+        SPECIAL_CHARS = "?@#$%^&*_-+()[]{}><\\/|\"'.,:;"
 
         # Гарантированные символы (по одному каждого типа)
         upper = random.choice(string.ascii_uppercase)   # заглавная латиница
@@ -30,8 +30,8 @@ class DataGenerator:
         # Все допустимые символы для остальной части пароля
         all_allowed = string.ascii_letters + string.digits + SPECIAL_CHARS
 
-        # Длина пароля от 8 до 32 символов (после добавления гарантированных)
-        remaining_length = random.randint(8 - 4, 32 - 4)  # минимум 4 уже есть
+        # Длина пароля от 8 до 20 символов (после добавления гарантированных) — API лимит
+        remaining_length = random.randint(8 - 4, 20 - 4)  # минимум 4 уже есть
         remaining_chars = "".join(random.choices(all_allowed, k=remaining_length))
 
         # Собираем и перемешиваем
@@ -39,3 +39,7 @@ class DataGenerator:
         random.shuffle(password_list)
 
         return "".join(password_list)
+
+    @staticmethod
+    def generate_random_int(length: int) -> str:
+        return "".join(random.choices(string.digits, k=length))

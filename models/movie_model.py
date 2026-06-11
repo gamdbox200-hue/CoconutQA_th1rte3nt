@@ -9,12 +9,12 @@ class GenreModel(BaseModel):
 class MovieModel(BaseModel):
     id: int
     name: str
-    price: int
+    price: float
     description: Optional[str] = None
     imageUrl: Optional[str] = None
     location: str
     published: bool
-    rating: int = 0
+    rating: float = 0.0
     genreId: int
     createdAt: Optional[str] = None
     genre: Optional[GenreModel] = None

@@ -126,24 +126,25 @@ class TestMoviesAPI:
     def test_movies_filter_by_price(self, api_manager, admin_session, min_price, max_price):
         with allure.step(f"Запросить фильмы с minPrice={min_price}, maxPrice={max_price}"):
             params = {"minPrice": min_price, "maxPrice": max_price}
-            movies = api_manager.movies_api.get_movies(params=params).json()["movies"]
+            response = api_manager.movies_api.get_movies(params=params)
+            data = MoviesListResponse.model_validate(response.json())
 
         with allure.step(f"Проверить, что каждый фильм в диапазоне [{min_price}, {max_price}]"):
-            for movie in movies:
+            for movie in data.movies:
                 check.is_true(
-                    min_price <= movie["price"] <= max_price,
-                    f"Фильм '{movie.get('name', movie['id'])}': цена {movie['price']} вне диапазона [{min_price}, {max_price}]"
+                    min_price <= movie.price <= max_price,
+                    f"Фильм '{movie.name}': цена {movie.price} вне диапазона [{min_price}, {max_price}]"
                 )
 
     @allure.story("Filter Movies")
-    @allure.title("Фильтрация фильмов по локации ({location})")
+    @allure.title("Фильтрация фильмов по локации")
     @allure.severity(allure.severity_level.NORMAL)
-    @pytest.mark.parametrize("location", ["MSK", "SPB"])
-    def test_movie_filter_by_location(self, api_manager, admin_session, location):
-        with allure.step(f"Запросить все фильмы"):
-            movies = api_manager.movies_api.get_movies().json()["movies"]
+    def test_movie_filter_by_location(self, api_manager, admin_session):
+        with allure.step("Запросить фильмы с location=MSK"):
+            params = {"location": "MSK"}
+            movies = api_manager.movies_api.get_movies(params=params).json()["movies"]
 
-        with allure.step(f"Проверить, что каждый фильм имеет допустимую локацию"):
+        with allure.step("Проверить, что все фильмы имеют допустимую локацию (MSK или SPB)"):
             for movie in movies:
                 check.is_in(
                     movie["location"], ("MSK", "SPB"),

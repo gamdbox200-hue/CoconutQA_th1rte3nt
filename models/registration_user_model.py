@@ -40,7 +40,7 @@ class LoginResponse(BaseModel):
     accessToken: str
     refreshToken: str
     expiresIn: int
-    user: dict   # или отдельную модель UserInfo
+    user: dict
 
 
 class ErrorResponse(BaseModel):

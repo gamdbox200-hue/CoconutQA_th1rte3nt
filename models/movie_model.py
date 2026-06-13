@@ -9,15 +9,15 @@ class GenreModel(BaseModel):
 class MovieModel(BaseModel):
     id: int
     name: str
-    price: int
-    description: Optional[str] = None
+    price: float
+    description: str
     imageUrl: Optional[str] = None
     location: str
     published: bool
-    rating: int = 0
     genreId: int
-    createdAt: Optional[str] = None
-    genre: Optional[GenreModel] = None
+    genre: GenreModel
+    createdAt: str
+    rating: float
     reviews: Optional[list] = None
 
     model_config = {"extra": "ignore"}

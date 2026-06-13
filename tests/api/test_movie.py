@@ -79,11 +79,11 @@ class TestMoviesAPI:
 
         with allure.step(f"Отправить PUT-запрос на /movies/{movie_id} с price={new_price}"):
             response = api_manager.movies_api.update_movie(movie_id, update_data)
-            updated_movie = response.json()
+            updated_movie = MovieModel.model_validate(response.json())
 
         with allure.step("Проверить, что цена обновлена"):
-            check.equal(updated_movie["price"], new_price,
-                        f"Ожидалась цена {new_price}, получена {updated_movie['price']}")
+            check.equal(updated_movie.price, new_price,
+                        f"Ожидалась цена {new_price}, получена {updated_movie.price}")
 
     @allure.story("Delete Movie")
     @allure.title("Удаление фильма по полному циклу: создание → удаление → проверка 404")
@@ -99,13 +99,13 @@ class TestMoviesAPI:
                 "genreId": 3
             }
             response = api_manager.movies_api.create_movie(movie_data, expected_status=201)
-            movie_to_delete = response.json()
+            movie_to_delete = MovieModel.model_validate(response.json())
 
-        with allure.step(f"Удалить фильм id={movie_to_delete['id']}"):
-            api_manager.movies_api.delete_movie(movie_to_delete["id"], expected_status=200)
+        with allure.step(f"Удалить фильм id={movie_to_delete.id}"):
+            api_manager.movies_api.delete_movie(movie_to_delete.id, expected_status=200)
 
         with allure.step("Проверить, что фильм недоступен (404)"):
-            api_manager.movies_api.get_movie_by_id(movie_to_delete["id"], expected_status=404)
+            api_manager.movies_api.get_movie_by_id(movie_to_delete.id, expected_status=404)
 
 
     @allure.story("Filter Movies")
@@ -265,12 +265,13 @@ class TestMoviesNegative:
                 "published": True,
                 "genreId": 3
             }
-            movie = api_manager.movies_api.create_movie(movie_data, expected_status=201).json()
+            movie = MovieModel.model_validate\
+                (api_manager.movies_api.create_movie(movie_data, expected_status=201).json())
 
         with allure.step(f"Попытаться удалить фильм от имени {user_fixture_name} (ожидается {expected_status})"):
             user = request.getfixturevalue(user_fixture_name)
-            user.api.movies_api.delete_movie(movie["id"], expected_status=expected_status)
+            user.api.movies_api.delete_movie(movie.id, expected_status=expected_status)
 
         if expected_status == 200:
             with allure.step("Проверить, что фильм действительно удалён (404)"):
-                api_manager.movies_api.get_movie_by_id(movie["id"], expected_status=404)
+                api_manager.movies_api.get_movie_by_id(movie.id, expected_status=404)

@@ -138,7 +138,7 @@ def create_movie(admin_session, api_manager):
         "price": 500,
         "location": "MSK",
         "published": True,
-        "genreId": 1
+        "genreId": 3
     }
     response = api_manager.movies_api.create_movie(movie_data, expected_status=201)
     movie = response.json()

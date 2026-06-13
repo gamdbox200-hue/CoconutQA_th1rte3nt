@@ -92,7 +92,7 @@ class TestMoviesDB:
                     description="Создан через БД",
                     location="MSK",
                     published=True,
-                    genre_id=1,
+                    genre_id=3,
                     rating=0,
                     created_at=datetime.now()
                 )

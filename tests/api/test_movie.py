@@ -15,9 +15,14 @@ class TestMoviesAPI:
     def test_get_movies_success(self, api_manager, admin_session):
         with allure.step("Отправить GET-запрос на /movies"):
             response = api_manager.movies_api.get_movies()
-            movies = response.json()["movies"]
-        with allure.step("Проверить, что movies — это список"):
-            check.is_instance(movies, list, "movies должен быть списком")
+            data = MoviesListResponse.model_validate(response.json())
+
+        with allure.step("Проверить структуру ответа"):
+            check.is_instance(data.movies, list, "movies должен быть списком")
+            check.is_instance(data.count, int, "count должен быть int")
+            check.is_instance(data.page, int, "page должен быть int")
+            check.is_instance(data.pageSize, int, "pageSize должен быть int")
+            check.is_instance(data.pageCount, int, "pageCount должен быть int")
 
     @allure.title("Получение фильма по ID — валидация через Pydantic")
     @allure.severity(allure.severity_level.CRITICAL)
@@ -102,7 +107,7 @@ class TestMoviesAPI:
                 "price": 300,
                 "location": "MSK",
                 "published": True,
-                "genreId": 1
+                "genreId": 3
             }
             response = api_manager.movies_api.create_movie(movie_data, expected_status=201)
             movie_to_delete = response.json()
@@ -137,18 +142,24 @@ class TestMoviesAPI:
                 )
 
     @allure.story("Filter Movies")
-    @allure.title("Фильтрация фильмов по локации")
+    @allure.title("Фильтрация фильмов по локации (locations={locations})")
     @allure.severity(allure.severity_level.NORMAL)
-    def test_movie_filter_by_location(self, api_manager, admin_session):
-        with allure.step("Запросить фильмы с location=MSK"):
-            params = {"location": "MSK"}
-            movies = api_manager.movies_api.get_movies(params=params).json()["movies"]
+    @pytest.mark.parametrize("locations", ["MSK", "SPB"])
+    def test_movie_filter_by_location(self, api_manager, admin_session, locations):
+        with allure.step(f"Запросить фильмы с locations={locations}"):
+            params = {"locations": locations}
+            response = api_manager.movies_api.get_movies(params=params)
+            data = MoviesListResponse.model_validate(response.json())
 
-        with allure.step("Проверить, что все фильмы имеют допустимую локацию (MSK или SPB)"):
-            for movie in movies:
+        with allure.step("Проверить, что список не пуст"):
+            check.greater(len(data.movies), 0, f"Фильтр по {locations} не вернул фильмов")
+
+        with allure.step(f"Проверить, что все фильмы имеют локацию из {locations}"):
+            allowed = tuple(loc.strip() for loc in locations.split(","))
+            for movie in data.movies:
                 check.is_in(
-                    movie["location"], ("MSK", "SPB"),
-                    f"Фильм '{movie.get('name', movie['id'])}': локация {movie['location']} недопустима"
+                    movie.location, allowed,
+                    f"Фильм '{movie.name}': локация {movie.location} не в {allowed}"
                 )
 
     @allure.story("Filter Movies")
@@ -158,13 +169,14 @@ class TestMoviesAPI:
     def test_movies_filter_by_genre(self, api_manager, admin_session, genre_id):
         with allure.step(f"Запросить фильмы с genreId={genre_id}"):
             params = {"genreId": genre_id}
-            movies = api_manager.movies_api.get_movies(params=params).json()["movies"]
+            response = api_manager.movies_api.get_movies(params=params)
+            data = MoviesListResponse.model_validate(response.json())
 
         with allure.step(f"Проверить, что каждый фильм имеет genreId={genre_id}"):
-            for movie in movies:
+            for movie in data.movies:
                 check.equal(
-                    movie["genreId"], genre_id,
-                    f"Фильм '{movie.get('name', movie['id'])}': ожидался genreId={genre_id}, получен {movie['genreId']}"
+                    movie.genreId, genre_id,
+                    f"Фильм '{movie.name}': genreId={movie.genreId} != {genre_id}"
                 )
 
 
@@ -181,7 +193,7 @@ class TestMoviesNegative:
                 "description": "Описание",
                 "location": "MSK",
                 "published": True,
-                "genreId": 1
+                "genreId": 3
             }
             response = api_manager.movies_api.create_movie(movie_data, expected_status=400)
             response_data = response.json()
@@ -210,7 +222,7 @@ class TestMoviesNegative:
                 "description": "Описание",
                 "location": "NEW-YORK",
                 "published": True,
-                "genreId": 1
+                "genreId": 3
             }
             response = api_manager.movies_api.create_movie(movie_data, expected_status=400)
             response_data = response.json()
@@ -242,7 +254,7 @@ class TestMoviesNegative:
                 "price": 500,
                 "location": "MSK",
                 "published": True,
-                "genreId": 1
+                "genreId": 3
             }
             common_user.api.movies_api.create_movie(movie_data, expected_status=403)
 
@@ -263,7 +275,7 @@ class TestMoviesNegative:
                 "price": 300,
                 "location": "MSK",
                 "published": True,
-                "genreId": 1
+                "genreId": 3
             }
             movie = api_manager.movies_api.create_movie(movie_data, expected_status=201).json()
 

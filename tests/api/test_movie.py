@@ -32,17 +32,6 @@ class TestMoviesAPI:
             response = api_manager.movies_api.get_movie_by_id(movie_id)
             movie_data = response.json()
 
-        with allure.step("Проверить id фильма"):
-            check.equal(movie_data["id"], movie_id, f"Ожидался id {movie_id}, получен {movie_data['id']}")
-        with allure.step("Проверить наличие поля name"):
-            check.is_in("name", movie_data, "Поле name отсутствует в ответе")
-        with allure.step("Проверить наличие поля price"):
-            check.is_in("price", movie_data, "Поле price отсутствует в ответе")
-        with allure.step("Проверить наличие поля rating"):
-            check.is_in("rating", movie_data, "Поле rating отсутствует в ответе")
-        with allure.step("Проверить наличие поля genre"):
-            check.is_in("genre", movie_data, "Поле genre отсутствует в ответе")
-
         with allure.step("Валидация схемы ответа через Pydantic MovieModel"):
             validated = MovieModel.model_validate(movie_data)
             check.equal(validated.id, movie_id)
@@ -154,12 +143,11 @@ class TestMoviesAPI:
         with allure.step("Проверить, что список не пуст"):
             check.greater(len(data.movies), 0, f"Фильтр по {locations} не вернул фильмов")
 
-        with allure.step(f"Проверить, что все фильмы имеют локацию из {locations}"):
-            allowed = tuple(loc.strip() for loc in locations.split(","))
+        with allure.step(f"Проверить, что все фильмы имеют локацию {locations}"):
             for movie in data.movies:
-                check.is_in(
-                    movie.location, allowed,
-                    f"Фильм '{movie.name}': локация {movie.location} не в {allowed}"
+                check.equal(
+                    movie.location, locations,
+                    f"Фильм '{movie.name}': локация {movie.location} != {locations}"
                 )
 
     @allure.story("Filter Movies")

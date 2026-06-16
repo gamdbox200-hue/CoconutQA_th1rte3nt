@@ -7,7 +7,7 @@ Base = declarative_base()
 class MovieDBModel(Base):
     __tablename__ = 'movies'
 
-    id = Column(Integer, primary_key=True)   # в БД serial → в Python int
+    id = Column(Integer, primary_key=True)
     name = Column(String)
     price = Column(Float)
     description = Column(String)

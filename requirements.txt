@@ -7,3 +7,4 @@ psycopg2-binary>=2.9.0
 sqlalchemy>=2.0.0
 allure-pytest>=2.16.0
 pytest-check>=2.8.0
+playwright

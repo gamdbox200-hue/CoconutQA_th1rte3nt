@@ -10,7 +10,7 @@ from enmus.roles import Roles
 from models.registration_user_model import RegistrationUser
 from db_requester.db_client import get_db_session
 from db_requester.db_helpers import DBHelper
-
+from collections import namedtuple
 
 @pytest.fixture(scope="session")
 def test_user():
@@ -37,15 +37,13 @@ def requester():
 @pytest.fixture(scope="session")
 def registered_user(api_manager, test_user):
     response = api_manager.auth_api.register_user(test_user, expected_status=201)
-    return {
-        "email": test_user.email,
-        "password": test_user.password
-    }
+    UserCredentials = namedtuple('UserCredentials', ['email', 'password'])
+    return UserCredentials(email=test_user.email, password=test_user.password)
 
 @pytest.fixture(scope="session")
 def auth_session(api_manager, registered_user):
     api_manager.auth_api.authenticate(
-        (registered_user["email"], registered_user["password"])
+        (registered_user.email, registered_user.password)
     )
     return api_manager.session
 

@@ -123,3 +123,29 @@ class CinescopeLoginPage(BasePage):
 
     def assert_allert_was_pop_up(self):
         self.check_pop_up_element_with_text("Вы вошли в аккаунт")
+
+
+class CinescopeMovieDetailPage(BasePage):
+    def __init__(self, page: Page):
+        super().__init__(page)
+
+        self.review_textarea = "xpath=/html/body/div[2]/main/div/div/div/form/textarea"
+        self.rating_combobox = "xpath=/html/body/div[2]/main/div/div/div/form/div/div/div/button[@role='combobox']"
+        self.submit_review_button = "xpath=/html/body/div[2]/main/div/div/div/form/div/button[@type='submit']"
+
+    def open(self, movie_id: int):
+        self.open_url(f"{self.home_url}movies/{movie_id}")
+        self.page.wait_for_load_state("networkidle")
+
+    @allure.step("Оставить отзыв: оценка={rating}, текст='{text}'")
+    def leave_review(self, rating: int, text: str):
+        self.click_element(self.rating_combobox)
+        self.page.get_by_text(str(rating), exact=True).last.click()
+        self.enter_text_to_element(self.review_textarea, text)
+        self.click_element(self.submit_review_button)
+
+    @allure.step("Проверить что отзыв с текстом '{text}' появился")
+    def assert_review_appeared(self, text: str):
+        review = self.page.get_by_text(text).first
+        review.wait_for(state="visible")
+        assert review.is_visible(), f"Отзыв с текстом '{text}' не появился"

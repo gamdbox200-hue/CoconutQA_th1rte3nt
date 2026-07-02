@@ -36,7 +36,8 @@ def requester():
 
 @pytest.fixture(scope="session")
 def registered_user(api_manager, test_user):
-    response = api_manager.auth_api.register_user(test_user, expected_status=201)
+    user_data = {k: v for k, v in test_user.model_dump().items() if v is not None}
+    response = api_manager.auth_api.register_user(user_data, expected_status=201)
     UserCredentials = namedtuple('UserCredentials', ['email', 'password'])
     return UserCredentials(email=test_user.email, password=test_user.password)
 

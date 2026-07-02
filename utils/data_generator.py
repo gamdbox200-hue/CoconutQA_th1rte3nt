@@ -18,7 +18,7 @@ class DataGenerator:
 
     @staticmethod
     def generate_random_password():
-        SPECIAL_CHARS = "?@#$%^&*_-+()[]{}><\\/|\"'.,:"
+        SPECIAL_CHARS = "?@#$%^&*_-+()[]{}><\\/\"'.:;"
         upper = random.choice(string.ascii_uppercase)
         lower = random.choice(string.ascii_lowercase)
         digit = random.choice(string.digits)

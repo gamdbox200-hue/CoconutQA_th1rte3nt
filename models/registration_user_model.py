@@ -32,7 +32,7 @@ class RegisterUserResponse(BaseModel):
     email: str
     fullName: str
     verified: bool
-    banned: bool
+    banned: Optional[bool] = None
     roles: list[Roles]
     createdAt: str
 

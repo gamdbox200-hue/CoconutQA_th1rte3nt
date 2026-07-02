@@ -8,7 +8,7 @@ class PageAction:
 
     @allure.step("Переход на страницу: {url}")
     def open_url(self, url: str):
-        self.page.goto(url)
+        self.page.goto(url, wait_until="domcontentloaded")
 
     @allure.step("Ввод текста '{text}' в поле '{locator}'")
     def enter_text_to_element(self, locator: str, text: str):

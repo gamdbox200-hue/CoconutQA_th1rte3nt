@@ -20,6 +20,9 @@ class CinescopeLoginPage(BasePage):
         self.enter_text_to_element(self.email_input, email)
         self.enter_text_to_element(self.password_input, password)
         self.click_element(self.login_button)
+        self.page.wait_for_timeout(3000)
+        self.page.reload()
+        self.page.wait_for_timeout(3000)
 
     def assert_was_redirect_to_home_page(self):
         self.wait_redirect_for_url(self.home_url)

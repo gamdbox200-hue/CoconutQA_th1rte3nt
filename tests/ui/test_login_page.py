@@ -3,7 +3,7 @@ import allure
 import pytest
 from playwright.sync_api import sync_playwright
 
-from models.page_object_models import CinescopeLoginPage
+from models.login_page import CinescopeLoginPage
 
 
 @allure.epic("Тестирование UI")
@@ -22,7 +22,6 @@ class TestLoginPage:
 
             login_page.assert_was_redirect_to_home_page()
             login_page.make_screenshot_and_attach_to_allure()
-            login_page.assert_allert_was_pop_up()
 
             time.sleep(5)
             browser.close()

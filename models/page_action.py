@@ -1,5 +1,6 @@
+import time
 import allure
-from playwright.sync_api import Page
+from playwright.sync_api import Page, Error as PlaywrightError
 
 
 class PageAction:
@@ -8,7 +9,14 @@ class PageAction:
 
     @allure.step("Переход на страницу: {url}")
     def open_url(self, url: str):
-        self.page.goto(url, wait_until="domcontentloaded", timeout=60000)
+        for attempt in range(3):
+            try:
+                self.page.goto(url, wait_until="domcontentloaded", timeout=60000)
+                return
+            except PlaywrightError:
+                if attempt == 2:
+                    raise
+                time.sleep(3)
 
     @allure.step("Ввод текста '{text}' в поле '{locator}'")
     def enter_text_to_element(self, locator: str, text: str):

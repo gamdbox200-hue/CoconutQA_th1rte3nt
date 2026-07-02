@@ -85,9 +85,10 @@ class TestMoviesDB:
                 .filter(MovieDBModel.id == movie_id).first()
 
             if not movie:
+                from utils.data_generator import DataGenerator
                 movie = MovieDBModel(
                     id=movie_id,
-                    name="Тестовый фильм для удаления",
+                    name="FilmForDelete " + DataGenerator.generate_random_name(),
                     price=500,
                     description="Создан через БД",
                     location="MSK",

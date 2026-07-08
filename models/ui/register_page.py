@@ -1,6 +1,6 @@
 from playwright.sync_api import Page
 
-from models.base_page import BasePage
+from models.ui.base_page import BasePage
 
 
 class CinescopeRegisterPage(BasePage):

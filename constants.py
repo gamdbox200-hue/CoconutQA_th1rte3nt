@@ -6,3 +6,7 @@ HEADERS = {
 
 LOGIN_ENDPOINT = "/login"
 REGISTER_ENDPOINT = "/register"
+
+# UI Constants
+UI_BASE_URL = "https://dev-cinescope.coconutqa.ru"
+MOVIE_URL_TEMPLATE = f"{UI_BASE_URL}/movies/{{}}"

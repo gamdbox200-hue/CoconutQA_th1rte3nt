@@ -1,7 +1,7 @@
 import pytest
 from constants import REGISTER_ENDPOINT, LOGIN_ENDPOINT
 from utils.data_generator import DataGenerator
-from models.registration_user_model import RegisterUserResponse,LoginResponse,ErrorResponse
+from models.api.registration_user_model import RegisterUserResponse,LoginResponse,ErrorResponse
 from enmus.roles import Roles
 
 class TestAuthAPI:

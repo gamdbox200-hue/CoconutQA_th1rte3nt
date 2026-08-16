@@ -1,5 +1,4 @@
 from conftest import super_admin, creation_user_data
-from api.api_manager import ApiManager
 from models.api.registration_user_model import RegisterUserResponse
 
 class TestUser:

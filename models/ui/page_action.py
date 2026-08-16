@@ -26,6 +26,10 @@ class PageAction:
     def click_element(self, locator: str):
         self.page.click(locator)
 
+    @allure.step("Клик по Locator-объекту")
+    def click_locator(self, locator):
+        locator.click()
+
     @allure.step("Ожидание загрузки страницы: {url}")
     def wait_redirect_for_url(self, url: str):
         self.page.wait_for_url(url)

@@ -1,5 +1,5 @@
 import allure
-from playwright.sync_api import Page
+from playwright.sync_api import Page, expect
 
 from models.ui.base_page import BasePage
 
@@ -41,8 +41,4 @@ class CinescopeMovieDetailPage(BasePage):
 
     @allure.step("Проверить что форма не отправилась (текст остался в поле)")
     def assert_review_form_not_submitted(self, expected_text: str):
-        self.page.wait_for_timeout(1000)
-        textarea_value = self.page.locator(self.review_textarea).input_value()
-        assert textarea_value == expected_text, (
-            f"Форма отправилась — поле очистилось, ожидалось '{expected_text}'"
-        )
+        expect(self.page.locator(self.review_textarea)).to_have_value(expected_text)

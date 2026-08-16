@@ -22,4 +22,4 @@ class TestRegisterPage:
 
         register_page.assert_was_redirect_to_login_page()
         register_page.make_screenshot_and_attach_to_allure()
-        register_page.assert_allert_was_pop_up()
+        register_page.assert_alert_was_pop_up()

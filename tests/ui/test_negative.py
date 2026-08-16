@@ -17,14 +17,14 @@ class TestNegativeUI:
         "",
         "Hi",
     ])
-    def test_leave_review_invalid_text(self, registered_user, browser_page, review_text):
+    def test_leave_review_invalid_text(self, registered_user, browser_page, review_text, create_movie):
         login_page = CinescopeLoginPage(browser_page)
         movie_page = CinescopeMovieDetailPage(browser_page)
 
         login_page.open()
         login_page.login(registered_user.email, registered_user.password)
-        browser_page.goto(MOVIE_URL_TEMPLATE.format(59920))
-        browser_page.wait_for_timeout(3000)
+        browser_page.goto(MOVIE_URL_TEMPLATE.format(create_movie["id"]))
+        browser_page.locator("[data-qa-id='movie_rating_select']").wait_for(state="visible", timeout=15000)
 
         movie_page.make_screenshot_and_attach_to_allure()
         movie_page.leave_review(rating=5, text=review_text)

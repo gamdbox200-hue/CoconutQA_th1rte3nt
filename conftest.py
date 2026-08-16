@@ -1,7 +1,8 @@
 import pytest
 import requests
+from playwright.sync_api import sync_playwright
 
-from constants import BASE_URL, REGISTER_ENDPOINT, LOGIN_ENDPOINT
+from constants import BASE_URL
 from utils.data_generator import DataGenerator
 from custom_requester.custom_requester import CustomRequester
 from api.api_manager import ApiManager
@@ -12,9 +13,9 @@ from models.api.registration_user_model import RegistrationUser
 from db_requester.db_client import get_db_session
 from db_requester.db_helpers import DBHelper
 from collections import namedtuple
+from models.ui.login_page import CinescopeLoginPage
+from models.ui.admin_page import CinescopeAdminPage
 
-
-# ==================== API фикстуры ====================
 
 @pytest.fixture(scope="session")
 def session():
@@ -41,8 +42,6 @@ def admin_session(session, api_manager):
     )
     return session
 
-
-# ==================== Пользователи ====================
 
 @pytest.fixture(scope="session")
 def test_user():
@@ -140,8 +139,6 @@ def admin_user(user_session, super_admin, creation_user_data):
     return admin_user
 
 
-# ==================== Фильмы ====================
-
 @pytest.fixture
 def create_movie(admin_session, api_manager):
     movie_data = {
@@ -158,7 +155,19 @@ def create_movie(admin_session, api_manager):
     api_manager.movies_api.delete_movie(movie["id"], expected_status=200)
 
 
-# ==================== БД ====================
+@pytest.fixture(scope="session")
+def existing_movie(api_manager):
+    first_page = api_manager.movies_api.get_movies(expected_status=200).json()
+    page_count = first_page.get("pageCount", 1)
+    for page in range(1, page_count + 1):
+        data = first_page if page == 1 else api_manager.movies_api.get_movies(
+            params={"page": page}, expected_status=200
+        ).json()
+        for movie in data.get("movies", []):
+            if movie.get("published") and movie.get("rating", 1) == 0:
+                return movie
+    raise RuntimeError("В каталоге нет опубликованных фильмов без отзывов (rating == 0)")
+
 
 @pytest.fixture
 def db_session():
@@ -172,26 +181,27 @@ def db_helper(db_session):
     return DBHelper(db_session)
 
 
-# ==================== UI фикстуры ====================
-
 @pytest.fixture(scope="function")
 def browser_page():
-    from playwright.sync_api import sync_playwright
     with sync_playwright() as p:
         browser = p.chromium.launch(headless=False)
         page = browser.new_page()
-        yield page
-        browser.close()
+        try:
+            yield page
+        finally:
+            try:
+                browser.close()
+            except Exception:
+                pass
 
 
 @pytest.fixture(scope="function")
-def admin_auth(browser_page):
-    from models.ui.login_page import CinescopeLoginPage
+def admin_auth(browser_page, super_admin):
     login_page = CinescopeLoginPage(browser_page)
     login_page.open()
-    login_page.login(SuperAdminCreds.USERNAME, SuperAdminCreds.PASSWORD)
+    login_page.login(super_admin.email, super_admin.password)
     browser_page.get_by_text("Профиль", exact=True).click()
-    browser_page.wait_for_load_state("networkidle")
+    browser_page.get_by_text("Админ панель", exact=True).wait_for(state="visible", timeout=5000)
     browser_page.get_by_text("Админ панель", exact=True).click()
-    browser_page.wait_for_load_state("networkidle")
-    return browser_page
+    browser_page.wait_for_load_state("domcontentloaded")
+    return CinescopeAdminPage(browser_page)

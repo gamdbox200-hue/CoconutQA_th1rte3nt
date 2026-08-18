@@ -10,12 +10,12 @@ from utils.data_generator import DataGenerator
 @pytest.mark.ui
 class TestRegisterPage:
     @allure.title("Проведение успешной регистрации")
-    def test_register_by_ui(self, browser_page):
+    def test_register_by_ui(self, page):
         random_email = DataGenerator.generate_random_email()
         random_name = DataGenerator.generate_random_name()
         random_password = DataGenerator.generate_random_password()
 
-        register_page = CinescopeRegisterPage(browser_page)
+        register_page = CinescopeRegisterPage(page)
 
         register_page.open()
         register_page.register(f"PlaywrightTest {random_name}", random_email, random_password, random_password)

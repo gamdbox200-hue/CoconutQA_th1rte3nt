@@ -16,6 +16,8 @@ from collections import namedtuple
 from models.ui.login_page import CinescopeLoginPage
 from models.ui.admin_page import CinescopeAdminPage
 
+DEFAULT_UI_TIMEOUT = 30000
+
 
 @pytest.fixture(scope="session")
 def session():
@@ -181,27 +183,42 @@ def db_helper(db_session):
     return DBHelper(db_session)
 
 
-@pytest.fixture(scope="function")
-def browser_page():
-    with sync_playwright() as p:
-        browser = p.chromium.launch(headless=False)
-        page = browser.new_page()
-        try:
-            yield page
-        finally:
-            try:
-                browser.close()
-            except Exception:
-                pass
+@pytest.fixture(scope="session")
+def playwright():
+    pw = sync_playwright().start()
+    yield pw
+    pw.stop()
+
+
+@pytest.fixture(scope="session")
+def browser(playwright):
+    browser = playwright.chromium.launch(headless=False)
+    yield browser
+    browser.close()
 
 
 @pytest.fixture(scope="function")
-def admin_auth(browser_page, super_admin):
-    login_page = CinescopeLoginPage(browser_page)
+def context(browser):
+    context = browser.new_context()
+    context.set_default_timeout(DEFAULT_UI_TIMEOUT)
+    yield context
+    context.close()
+
+
+@pytest.fixture(scope="function")
+def page(context):
+    page = context.new_page()
+    yield page
+    page.close()
+
+
+@pytest.fixture(scope="function")
+def admin_auth(page, super_admin):
+    login_page = CinescopeLoginPage(page)
     login_page.open()
     login_page.login(super_admin.email, super_admin.password)
-    browser_page.get_by_text("Профиль", exact=True).click()
-    browser_page.get_by_text("Админ панель", exact=True).wait_for(state="visible", timeout=5000)
-    browser_page.get_by_text("Админ панель", exact=True).click()
-    browser_page.wait_for_load_state("domcontentloaded")
-    return CinescopeAdminPage(browser_page)
+    page.get_by_text("Профиль", exact=True).click()
+    page.get_by_text("Админ панель", exact=True).wait_for(state="visible", timeout=5000)
+    page.get_by_text("Админ панель", exact=True).click()
+    page.wait_for_load_state("domcontentloaded")
+    return CinescopeAdminPage(page)

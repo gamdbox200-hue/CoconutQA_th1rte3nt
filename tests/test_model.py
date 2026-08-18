@@ -1,7 +1,7 @@
 import pytest
 import allure
 from pytest_check import check
-from models.registration_user_model import RegistrationUser
+from models.api.registration_user_model import RegistrationUser
 
 
 @allure.feature("Model Validation")

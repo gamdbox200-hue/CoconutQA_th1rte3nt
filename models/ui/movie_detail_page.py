@@ -1,7 +1,7 @@
 import allure
-from playwright.sync_api import Page
+from playwright.sync_api import Page, expect
 
-from models.base_page import BasePage
+from models.ui.base_page import BasePage
 
 
 class CinescopeMovieDetailPage(BasePage):
@@ -33,8 +33,12 @@ class CinescopeMovieDetailPage(BasePage):
         review.wait_for(state="visible")
         assert review.is_visible(), f"Отзыв с текстом '{text}' не появился"
 
-    @allure.step("Проверить что форма не отправилась")
-    def assert_review_not_appeared(self, expected_text: str):
-        self.page.wait_for_timeout(1000)
-        textarea_value = self.page.locator(self.review_textarea).input_value()
-        assert textarea_value == expected_text, f"Форма отправилась — поле очистилось, ожидалось '{expected_text}'"
+    @allure.step("Проверить что появилось сообщение об ошибке: '{error_text}'")
+    def assert_error_message_appeared(self, error_text: str):
+        error = self.page.get_by_text(error_text)
+        error.wait_for(state="visible", timeout=5000)
+        assert error.is_visible(), f"Ошибка '{error_text}' не появилась"
+
+    @allure.step("Проверить что форма не отправилась (текст остался в поле)")
+    def assert_review_form_not_submitted(self, expected_text: str):
+        expect(self.page.locator(self.review_textarea)).to_have_value(expected_text)

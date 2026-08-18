@@ -1,6 +1,6 @@
 from playwright.sync_api import Page
 
-from models.base_page import BasePage
+from models.ui.base_page import BasePage
 
 
 class CinescopeLoginPage(BasePage):
@@ -27,5 +27,5 @@ class CinescopeLoginPage(BasePage):
     def assert_was_redirect_to_home_page(self):
         self.wait_redirect_for_url(self.home_url)
 
-    def assert_allert_was_pop_up(self):
+    def assert_alert_was_pop_up(self):
         self.check_pop_up_element_with_text("Вы вошли в аккаунт")

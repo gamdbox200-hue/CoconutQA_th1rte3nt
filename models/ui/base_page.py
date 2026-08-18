@@ -1,13 +1,14 @@
 import allure
 from playwright.sync_api import Page
 
-from models.page_action import PageAction
+from models.ui.page_action import PageAction
+from constants import UI_BASE_URL
 
 
 class BasePage(PageAction):
     def __init__(self, page: Page):
         super().__init__(page)
-        self.home_url = "https://dev-cinescope.coconutqa.ru/"
+        self.home_url = f"{UI_BASE_URL}/"
 
     @allure.step("Переход на главную страницу, из шапки сайта")
     def go_to_home_page(self):

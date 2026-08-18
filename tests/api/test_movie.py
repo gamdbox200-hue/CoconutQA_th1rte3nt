@@ -2,7 +2,7 @@ import pytest
 import allure
 from pytest_check import check
 from utils.data_generator import DataGenerator
-from models.movie_model import MovieModel, MoviesListResponse
+from models.api.movie_model import MovieModel, MoviesListResponse
 
 
 @allure.feature("Movies API")
@@ -96,7 +96,7 @@ class TestMoviesAPI:
                 "price": 300,
                 "location": "MSK",
                 "published": True,
-                "genreId": 3
+                "genreId": 186
             }
             response = api_manager.movies_api.create_movie(movie_data, expected_status=201)
             movie_to_delete = MovieModel.model_validate(response.json())
@@ -153,7 +153,7 @@ class TestMoviesAPI:
     @allure.story("Filter Movies")
     @allure.title("Фильтрация фильмов по жанру (genreId={genre_id})")
     @allure.severity(allure.severity_level.NORMAL)
-    @pytest.mark.parametrize("genre_id", [1, 2, 3, 4, 5])
+    @pytest.mark.parametrize("genre_id", [2, 4, 5, 7, 8])
     def test_movies_filter_by_genre(self, api_manager, admin_session, genre_id):
         with allure.step(f"Запросить фильмы с genreId={genre_id}"):
             params = {"genreId": genre_id}
@@ -181,7 +181,7 @@ class TestMoviesNegative:
                 "description": "Описание",
                 "location": "MSK",
                 "published": True,
-                "genreId": 3
+                "genreId": 186
             }
             response = api_manager.movies_api.create_movie(movie_data, expected_status=400)
             response_data = response.json()
@@ -210,7 +210,7 @@ class TestMoviesNegative:
                 "description": "Описание",
                 "location": "NEW-YORK",
                 "published": True,
-                "genreId": 3
+                "genreId": 186
             }
             response = api_manager.movies_api.create_movie(movie_data, expected_status=400)
             response_data = response.json()
@@ -242,7 +242,7 @@ class TestMoviesNegative:
                 "price": 500,
                 "location": "MSK",
                 "published": True,
-                "genreId": 3
+                "genreId": 186
             }
             common_user.api.movies_api.create_movie(movie_data, expected_status=403)
 
@@ -263,7 +263,7 @@ class TestMoviesNegative:
                 "price": 300,
                 "location": "MSK",
                 "published": True,
-                "genreId": 3
+                "genreId": 186
             }
             movie = MovieModel.model_validate\
                 (api_manager.movies_api.create_movie(movie_data, expected_status=201).json())
